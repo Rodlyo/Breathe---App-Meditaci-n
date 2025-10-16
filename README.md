@@ -1,4 +1,4 @@
-Proyecto React Native - SQLite:
+Proyecto "Breathe" con React Native - SQLite:
 
 Este proyecto es una **aplicación móvil desarrollada en React Native** que incluye funcionalidades de **Login, Registro, Menú principal y manejo de base de datos SQLite**.  
 Está diseñado para funcionar sin usar React Navigation.
