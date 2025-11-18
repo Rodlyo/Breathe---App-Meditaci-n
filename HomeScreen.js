@@ -17,7 +17,7 @@ export default function HomeScreen({ onStart }) {
 
             <TouchableOpacity
                 style={[styles.buttonBase, styles.buttonPrimary]}
-                onPress={onStart}   // 👈 aquí usamos la prop que mandaste desde App.js
+                onPress={onStart}
             >
                 <Text style={styles.buttonText}>Comenzar</Text>
             </TouchableOpacity>

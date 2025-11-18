@@ -7,7 +7,7 @@ const libraryImage = require('./assets/fondo.jpg');
 const customizationImage = require('./assets/fondo.jpg');
 const progressImage = require('./assets/fondo.jpg');
 
-export default function MenuScreen({ onLogout }) {
+export default function MenuScreen({ onLogout, setPantalla }) {
 
     const handleLogout = () => {
         Alert.alert(
@@ -42,11 +42,15 @@ export default function MenuScreen({ onLogout }) {
 
             {/* Botones tipo tarjeta */}
             <View style={styles.cardsContainer}>
-                <TouchableOpacity style={styles.card}>
+                <TouchableOpacity
+                    style={styles.card}
+                    onPress={() => setPantalla('biblioteca')}
+                >
                     <ImageBackground source={libraryImage} style={styles.cardBackground} imageStyle={{ borderRadius: 15 }}>
                         <Text style={styles.cardText}>BIBLIOTECA</Text>
                     </ImageBackground>
                 </TouchableOpacity>
+
 
                 <TouchableOpacity style={styles.card}>
                     <ImageBackground source={customizationImage} style={styles.cardBackground} imageStyle={{ borderRadius: 15 }}>
