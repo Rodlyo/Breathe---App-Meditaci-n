@@ -123,6 +123,28 @@ const styles = StyleSheet.create({
         marginBottom: 50,
         fontFamily: FONT_DEFAULT,
     },
+    // --- Barra inferior global ---
+    bottomBar: {
+        position: 'absolute',
+        bottom: 0,
+        left: 0,
+        right: 0,
+        height: 60,
+        flexDirection: 'row',
+        justifyContent: 'space-around',
+        alignItems: 'center',
+        backgroundColor: '#e0e4d7',
+    },
+
+    bottomButton: {
+        alignItems: 'center',
+    },
+
+    bottomText: {
+        fontSize: 14,
+        fontWeight: 'bold',
+    },
+
 });
 
 export { styles, PALETTE };

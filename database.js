@@ -2,7 +2,6 @@ import { openDatabaseSync } from 'expo-sqlite';
 
 const db = openDatabaseSync('usuarios.db');
 
-// SOLO TEMPORAL: eliminar la tabla vieja con columnas antiguas
 export const resetearBaseDeDatos = async () => {
     try {
         await db.execAsync('DROP TABLE IF EXISTS usuarios;');
