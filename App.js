@@ -98,7 +98,7 @@ export default function App() {
         setMostrarBienvenida(false);
       }, 5000); 
 
-      programarRecordatorioRespira(); // Activar recordatorios recurrentes
+      programarRecordatorioRespira(); // 4. Activar recordatorios recurrentes
 
     } 
     // Si sale del menú → detener recordatorio
@@ -114,7 +114,7 @@ export default function App() {
     };
   }, [pantalla]);
 
-  // CONTROL DE PANTALLAS
+  // 🚀 CONTROL DE PANTALLAS
   if (pantalla === 'home') {
     return <HomeScreen onStart={() => setPantalla('login')} />;
   }

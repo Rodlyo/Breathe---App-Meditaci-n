@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { View, Text, TouchableOpacity, ImageBackground, StyleSheet, Image, Alert, Platform } from 'react-native';
 import { PALETTE } from './Styles';
 
@@ -7,9 +7,95 @@ const libraryImage = require('./assets/fondo.jpg');
 const customizationImage = require('./assets/fondo.jpg');
 const progressImage = require('./assets/fondo.jpg');
 
-export default function MenuScreen({ onLogout, setPantalla, mostrarBienvenida }) {
+// Constantes para el temporizador: 10 minutos * 60 segundos
+const INITIAL_TIME = 600; 
 
-    const handleLogout = () => {
+export default function MenuScreen({ onLogout, setPantalla, mostrarBienvenida }) {
+    // 🚀 ESTADO DEL TEMPORIZADOR
+    const [timeLeft, setTimeLeft] = useState(INITIAL_TIME);
+    const [isRunning, setIsRunning] = useState(false);
+    const [selectedSound, setSelectedSound] = useState('Ninguno'); // 🎵 NUEVO: Estado para el sonido
+    const timerRef = useRef(null); // Para almacenar la referencia del setInterval
+
+    // 🧠 LÓGICA DEL TEMPORIZADOR (useEffect)
+    useEffect(() => {
+        if (isRunning && timeLeft > 0) {
+            // Iniciar el intervalo para el conteo regresivo
+            timerRef.current = setInterval(() => {
+                setTimeLeft((prevTime) => {
+                    // Detener al llegar a 0
+                    if (prevTime <= 1) {
+                        clearInterval(timerRef.current);
+                        setIsRunning(false);
+                        Alert.alert("Meditación Terminada", "¡Has completado tu sesión!");
+                        return 0;
+                    }
+                    return prevTime - 1;
+                });
+            }, 1000); // 1000ms = 1 segundo
+        } else {
+            // Limpiar el intervalo si se pausa o se detiene
+            if (timerRef.current) {
+                clearInterval(timerRef.current);
+            }
+        }
+
+        // Función de limpieza que se ejecuta al desmontar el componente o al cambiar dependencies
+        return () => {
+            if (timerRef.current) {
+                clearInterval(timerRef.current);
+            }
+        };
+    }, [isRunning, timeLeft]);
+
+
+    // 🔧 FUNCIÓN PARA FORMATEAR EL TIEMPO (MM:SS)
+    const formatTime = (totalSeconds) => {
+        const minutes = Math.floor(totalSeconds / 60);
+        const seconds = totalSeconds % 60;
+        return `${minutes < 10 ? '0' : ''}${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
+    };
+    
+    // 🎵 FUNCIÓN PARA SELECCIONAR SONIDO
+    const handleSoundSelection = () => {
+        Alert.alert(
+            "Seleccionar Sonido",
+            "Elige un sonido relajante para tu sesión de meditación:",
+            [
+                { text: "Lluvia 🌧️", onPress: () => setSelectedSound('Lluvia') },
+                { text: "Olas del Mar 🌊", onPress: () => setSelectedSound('Olas del Mar') },
+                { text: "Campanas Tibetanas 🔔", onPress: () => setSelectedSound('Campanas Tibetanas') },
+                { text: "Ninguno", onPress: () => setSelectedSound('Ninguno'), style: 'cancel' },
+            ]
+        );
+    };
+
+    // ⏯️ FUNCIÓN PARA INICIAR/PAUSAR/REANUDAR
+    const toggleTimer = () => {
+        const newState = !isRunning;
+        setIsRunning(newState);
+
+        // Simulamos la lógica de iniciar/pausar el sonido
+        if (newState) {
+            console.log(`[Sound] Iniciando sonido: ${selectedSound}`);
+            // Aquí iría la lógica real para reproducir el audio seleccionado
+        } else {
+            console.log(`[Sound] Pausando sonido: ${selectedSound}`);
+            // Aquí iría la lógica real para pausar el audio
+        }
+    };
+
+    // 🔄 FUNCIÓN PARA REINICIAR
+    const resetTimer = () => {
+        clearInterval(timerRef.current);
+        setIsRunning(false);
+        setTimeLeft(INITIAL_TIME);
+        // Simulamos la lógica de detener el sonido
+        console.log(`[Sound] Deteniendo y Reiniciando sonido.`);
+    };
+
+
+    const handleLogout = () => {
         Alert.alert(
             "Cerrar sesión",
             "¿Deseas cerrar sesión?",
@@ -30,20 +116,20 @@ export default function MenuScreen({ onLogout, setPantalla, mostrarBienvenida })
             </View>
         );
     };
-    
-    // Altura aproximada de la barra de notificación para empujar el contenido
-    const notificationHeight = 60; 
-    
-    // El margen se aplica al header solo si la notificación está visible
-    const headerConditionalMargin = mostrarBienvenida ? notificationHeight : 0;
+    
+    // Altura aproximada de la barra de notificación para empujar el contenido
+    const notificationHeight = 60; 
+    
+    // El margen se aplica al header solo si la notificación está visible
+    const headerConditionalMargin = mostrarBienvenida ? notificationHeight : 0;
 
 
     return (
         <View style={styles.container}>
-            {/* 🔔 1. BARRA DE NOTIFICACIÓN FLOTANTE */}
+            {/*BARRA DE NOTIFICACIÓN FLOTANTE */}
             <NotificationBar />
 
-            {/* 2. Header (con margen condicional) */}
+            {/*Header (con margen condicional) */}
             <View style={[styles.header, { marginTop: headerConditionalMargin }]}> 
                 <Text style={styles.userText}>Usuario</Text>
                 <TouchableOpacity onPress={handleLogout}>
@@ -51,14 +137,44 @@ export default function MenuScreen({ onLogout, setPantalla, mostrarBienvenida })
                 </TouchableOpacity>
             </View>
 
-            {/* Temporizador central */}
+            {/* Temporizador central y CONTROLES AÑADIDOS */}
             <View style={styles.timerContainer}>
                 <View style={styles.timerCircle}>
-                    <Text style={styles.timerText}>10:00</Text>
+                    <Text style={styles.timerText}>{formatTime(timeLeft)}</Text>
                 </View>
-                <TouchableOpacity style={styles.timerButton}>
+                
+                {/* 🎶 Indicador de Sonido Seleccionado */}
+                <Text style={styles.soundSelectionText}>Sonido: {selectedSound}</Text>
+                
+                <TouchableOpacity 
+                    style={[styles.timerButton, {marginBottom: 20}]}
+                    onPress={handleSoundSelection} // 👈 Nuevo handler de selección
+                >
                     <Text style={styles.timerButtonText}>Seleccionar sonido</Text>
                 </TouchableOpacity>
+
+                {/* ⏯️ Botón INICIAR/PAUSAR/REANUDAR */}
+                <TouchableOpacity 
+                    style={[
+                        styles.controlButton, 
+                        { backgroundColor: isRunning ? PALETTE.COLOR_RED || '#D9534F' : PALETTE.COLOR_GREEN }
+                    ]} 
+                    onPress={toggleTimer}
+                >
+                    <Text style={styles.controlButtonText}>
+                        {isRunning ? 'PAUSAR' : (timeLeft === INITIAL_TIME ? 'INICIAR' : 'REANUDAR')}
+                    </Text>
+                </TouchableOpacity>
+
+                {/* 🔄 Botón de REINICIAR (solo visible cuando se ha iniciado o pausado y no está en el tiempo inicial) */}
+                {timeLeft !== INITIAL_TIME && (
+                    <TouchableOpacity 
+                        style={[styles.controlButton, styles.resetButton]}
+                        onPress={resetTimer}
+                    >
+                        <Text style={styles.controlButtonText}>REINICIAR</Text>
+                    </TouchableOpacity>
+                )}
             </View>
 
             {/* Botones tipo tarjeta */}
@@ -105,31 +221,29 @@ export default function MenuScreen({ onLogout, setPantalla, mostrarBienvenida })
 
 const styles = StyleSheet.create({
     container: { 
-        flex: 1, 
-        backgroundColor: '#f0f3e8', 
-        paddingTop: 50 // Se mantiene el padding original para la barra de estado
-    },
+        flex: 1, 
+        backgroundColor: '#f0f3e8', 
+        paddingTop: 50 
+    },
 
-    // 🔔 NUEVOS ESTILOS PARA LA NOTIFICACIÓN IN-APP
-    notificationBar: {
-        position: 'absolute',
-        top: 0,
-        left: 0,
-        right: 0,
-        backgroundColor: PALETTE.COLOR_GREEN, // Verde Oliva
-        paddingBottom: 10,
-        // Añadimos paddingTop para asegurar que el texto esté debajo de la barra de estado
-        paddingTop: 30, 
-        zIndex: 100, 
-        alignItems: 'center',
-        justifyContent: 'center',
-    },
-    notificationText: {
-        color: 'white',
-        fontWeight: '500',
-        fontSize: 15,
-    },
-    // ------------------------------------------
+    // ESTILOS DE NOTIFICACIÓN IN-APP
+    notificationBar: {
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        right: 0,
+        backgroundColor: PALETTE.COLOR_GREEN, // Verde Oliva
+        paddingBottom: 10,
+        paddingTop: 30, 
+        zIndex: 100, 
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    notificationText: {
+        color: 'white',
+        fontWeight: '500',
+        fontSize: 15,
+    },
 
     header: {
         flexDirection: 'row',
@@ -137,7 +251,6 @@ const styles = StyleSheet.create({
         paddingHorizontal: 20,
         alignItems: 'center',
         marginBottom: 30,
-        // El marginTop se aplica aquí CONDICIONALMENTE para evitar solapamiento cuando la barra es visible.
     },
     userText: { fontSize: 20, fontWeight: 'bold' },
     userIcon: { width: 40, height: 40, borderRadius: 20 },
@@ -154,13 +267,43 @@ const styles = StyleSheet.create({
         marginBottom: 15,
     },
     timerText: { fontSize: 24, fontWeight: 'bold', color: PALETTE.TEXT_DARK },
-    timerButton: {
+    
+    // 🎶 NUEVO ESTILO: Para mostrar el sonido seleccionado
+    soundSelectionText: {
+        fontSize: 16,
+        color: PALETTE.TEXT_DARK,
+        marginBottom: 10,
+        fontWeight: '500',
+    },
+
+    // Se modificó el margen inferior para dar espacio a los nuevos botones
+    timerButton: {
         backgroundColor: PALETTE.BUTTON_SECONDARY,
         paddingHorizontal: 20,
         paddingVertical: 8,
         borderRadius: 20,
     },
     timerButtonText: { color: 'white', fontWeight: 'bold' },
+
+    // ESTILOS PARA LOS BOTONES DE CONTROL (INICIAR/PAUSAR/REINICIAR)
+    controlButton: {
+        width: 150,
+        height: 50,
+        justifyContent: 'center',
+        alignItems: 'center',
+        borderRadius: 25,
+        marginBottom: 10,
+    },
+    controlButtonText: {
+        color: 'white',
+        fontSize: 18,
+        fontWeight: 'bold',
+    },
+    resetButton: {
+        backgroundColor: PALETTE.TEXT_DARK || '#808080', // Gris oscuro para Reiniciar
+        marginTop: 10,
+    },
+    // -----------------------------------------------------------------------
 
     cardsContainer: { paddingHorizontal: 20 },
     card: { marginBottom: 20 },
