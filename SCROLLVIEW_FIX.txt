@@ -1,0 +1,11 @@
+// This is a fixed version fragment of MenuScreen.js to correct the ScrollView issue
+
+/* Replace the problematic section around line 254-257 with: */
+
+            </View>
+            </ScrollView>
+
+            {/* Barra inferior */}
+            <View style={styles.bottomBar}>
+
+/* The ScrollView should close before the bottomBar starts */
