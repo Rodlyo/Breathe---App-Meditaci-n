@@ -10,6 +10,7 @@ import ForgotPasswordScreen from './ForgotPasswordScreen';
 import BibliotecaScreen from './BibliotecaScreen';
 
 
+
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
     shouldShowAlert: true,
