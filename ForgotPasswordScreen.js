@@ -8,8 +8,8 @@ export default function ForgotPasswordScreen({ onGoLogin, onGoRegister }) {
     const [email, setEmail] = useState('');
 
     const handleSend = () => {
-        console.log('📩 Enviando correo de recuperación a:', email);
-        // Aquí puedes implementar tu lógica real de recuperación de contraseña
+        console.log('Enviando correo de recuperación a:', email);
+        // lógica a implementar de recuperación de contraseña
     };
 
     return (

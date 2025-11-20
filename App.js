@@ -9,134 +9,158 @@ import MenuScreen from './MenuScreen';
 import ForgotPasswordScreen from './ForgotPasswordScreen';
 import BibliotecaScreen from './BibliotecaScreen';
 
-
-
 Notifications.setNotificationHandler({
-  handleNotification: async () => ({
-    shouldShowAlert: true,
-    shouldPlaySound: false,
-    shouldSetBadge: false,
-  }),
+  handleNotification: async () => ({
+    shouldShowAlert: true,
+    shouldPlaySound: false,
+    shouldSetBadge: false,
+  }),
 });
 
+// ID de la notificación para poder cancelarla
+const NOTIFICATION_ID_RESPIRA = 'respira-recordatorio';
+
 export default function App() {
-  const [pantalla, setPantalla] = useState('home');
-  const pantallaAnterior = useRef('home');
-  const intervaloRespira = useRef(null);
+  const [pantalla, setPantalla] = useState('home');
+  const [mostrarBienvenida, setMostrarBienvenida] = useState(false);
+  const pantallaAnterior = useRef('home');
 
-  // 🚀 Enviar notificación cada 60 segundos (sin repeats)
-  function iniciarRecordatorioRespira() {
-    if (intervaloRespira.current) return; // evitar duplicados
+  // Función para programar la notificación recurrente (cada 60 segundos)
+  async function programarRecordatorioRespira() {
+    // Cancelamos cualquier notificación anterior para evitar duplicados
+    await Notifications.cancelScheduledNotificationAsync(NOTIFICATION_ID_RESPIRA);
 
-    intervaloRespira.current = setInterval(async () => {
-      await Notifications.scheduleNotificationAsync({
-        content: {
-          title: "Respira un momento 🌿",
-          body: "Tómate 1 minuto para relajarte.",
-          vibrate: [0, 150, 150, 150]
-        },
-        trigger: null,
-      });
-      console.log("Notificación enviada: Respira");
-    }, 60000); // 60 segundos
-  }
+    await Notifications.scheduleNotificationAsync({
+      identifier: NOTIFICATION_ID_RESPIRA, 
+      content: {
+        title: "Respira un momento 🌿",
+        body: "Tómate 1 minuto para relajarte.",
+        vibrate: [0, 150, 150, 150]
+      },
+      trigger: {
+        seconds: 60, // Se activa por primera vez después de 60 segundos
+        repeats: true, // Se repite indefinidamente
+      },
+    });
+    console.log("Recordatorio recurrente programado: Respira cada 60s");
+  }
 
-  // 🧹 Detener recordatorio cuando no estás en el menú
-  function detenerRecordatorioRespira() {
-    if (intervaloRespira.current) {
-      clearInterval(intervaloRespira.current);
-      intervaloRespira.current = null;
-      console.log("Recordatorio detenido");
-    }
-  }
+  // 🧹 Función para cancelar la notificación recurrente
+  async function detenerRecordatorioRespira() {
+    await Notifications.cancelScheduledNotificationAsync(NOTIFICATION_ID_RESPIRA);
+    console.log("Recordatorio recurrente detenido");
+  }
 
-  useEffect(() => {
-    async function initNotifications() {
-      if (!Device.isDevice) return;
+  useEffect(() => {
+    async function initNotifications() {
+      if (!Device.isDevice) return;
 
-      const { status } = await Notifications.requestPermissionsAsync();
-      if (status !== "granted") {
-        console.log("Permiso de notificaciones no concedido");
-        return;
-      }
+      const { status } = await Notifications.requestPermissionsAsync();
+      if (status !== "granted") {
+        console.log("Permiso de notificaciones no concedido");
+        return;
+      }
 
-      // 🔹 Notificación de bienvenida al abrir la app
-      await Notifications.scheduleNotificationAsync({
-        content: {
-          title: "Bienvenido a Breathe 💙",
-          body: "Gracias por volver. Tu momento de paz te espera."
-        },
-        trigger: null
-      });
-    }
+      // Notificación de bienvenida al abrir la app (única)
+      await Notifications.scheduleNotificationAsync({
+        content: {
+          title: "Bienvenido a Breathe 💙",
+          body: "Gracias por volver. Tu momento de paz te espera."
+        },
+        trigger: null
+      });
+    }
 
-    initNotifications();
-  }, []);
+    initNotifications();
+  }, []);
 
-  // 🚀 Notificación cuando inicia sesión (pantalla login -> menu)
-  useEffect(() => {
-    if (pantallaAnterior.current === "login" && pantalla === "menu") {
-      Notifications.scheduleNotificationAsync({
-        content: {
-          title: "¡Sesión iniciada!",
-          body: "Tu espacio de meditación está listo.",
-          vibrate: [0, 150, 150, 150],
-        },
-        trigger: null,
-      });
+  // Lógica de navegación y activación/desactivación de recordatorios
+  useEffect(() => {
+    let timer;
+    
+    // Si inicia sesión (login -> menu)
+    if (pantallaAnterior.current === "login" && pantalla === "menu") {
+      //  Notificación Push de inicio de sesión 
+      Notifications.scheduleNotificationAsync({
+        content: {
+          title: "¡Sesión iniciada!",
+          body: "Tu espacio de meditación está listo.",
+          vibrate: [0, 150, 150, 150],
+        },
+        trigger: null,
+      });
 
-      iniciarRecordatorioRespira();  // activar recordatorios solo en el menú
-    }
+      // Notificación In-App Temporal 
+      setMostrarBienvenida(true); 
+      
+      // Desactivarla después de 5 segundos
+      timer = setTimeout(() => {
+        setMostrarBienvenida(false);
+      }, 5000); 
 
-    // Si sale del menú → detener recordatorio
-    if (pantallaAnterior.current === "menu" && pantalla !== "menu") {
-      detenerRecordatorioRespira();
-    }
+      programarRecordatorioRespira(); // Activar recordatorios recurrentes
 
-    pantallaAnterior.current = pantalla;
-  }, [pantalla]);
+    } 
+    // Si sale del menú → detener recordatorio
+    else if (pantallaAnterior.current === "menu" && pantalla !== "menu") {
+      detenerRecordatorioRespira(); 
+      setMostrarBienvenida(false); // Asegurar que se oculte
+    }
 
-  // 🚀 CONTROL DE PANTALLAS
-  if (pantalla === 'home') {
-    return <HomeScreen onStart={() => setPantalla('login')} />;
-  }
+    pantallaAnterior.current = pantalla;
+    
+    return () => {
+      if (timer) clearTimeout(timer); // Limpiar timer si el componente se desmonta
+    };
+  }, [pantalla]);
 
-  if (pantalla === 'registro') {
-    return (
-      <RegisterScreen
-        onRegistered={() => setPantalla('login')}
-        onForgotPassword={() => setPantalla('forgot')}
-      />
-    );
-  }
+  // CONTROL DE PANTALLAS
+  if (pantalla === 'home') {
+    return <HomeScreen onStart={() => setPantalla('login')} />;
+  }
 
-  if (pantalla === 'login') {
-    return (
-      <LoginScreen
-        onLoginSuccess={() => setPantalla('menu')}
-        onGoRegister={() => setPantalla('registro')}
-        onForgotPassword={() => setPantalla('forgot')}
-      />
-    );
-  }
+  if (pantalla === 'registro') {
+    return (
+      <RegisterScreen
+        onRegistered={() => setPantalla('login')}
+        onForgotPassword={() => setPantalla('forgot')}
+      />
+    );
+  }
 
-  if (pantalla === 'forgot') {
-    return (
-      <ForgotPasswordScreen
-        onGoLogin={() => setPantalla('login')}
-        onGoRegister={() => setPantalla('registro')}
-      />
-    );
-  }
+  if (pantalla === 'login') {
+    return (
+      <LoginScreen
+        onLoginSuccess={() => setPantalla('menu')}
+        onGoRegister={() => setPantalla('registro')}
+        onForgotPassword={() => setPantalla('forgot')}
+      />
+    );
+  }
 
-  if (pantalla === 'menu') {
-    return <MenuScreen onLogout={() => setPantalla('home')} setPantalla={setPantalla} />;
-  }
+  if (pantalla === 'forgot') {
+    return (
+      <ForgotPasswordScreen
+        onGoLogin={() => setPantalla('login')}
+        onGoRegister={() => setPantalla('registro')}
+      />
+    );
+  }
+
+  if (pantalla === 'menu') {
+    return (
+      <MenuScreen 
+        onLogout={() => setPantalla('home')} 
+        setPantalla={setPantalla} 
+        mostrarBienvenida={mostrarBienvenida} 
+      />
+    );
+  }
 
 
-  if (pantalla === 'biblioteca') {
-    return <BibliotecaScreen onBack={() => setPantalla('menu')} />;
-  }
+  if (pantalla === 'biblioteca') {
+    return <BibliotecaScreen onBack={() => setPantalla('menu')} />;
+  }
 
-  return null;
+  return null;
 }
