@@ -23,7 +23,7 @@ export default function MenuScreen({ onLogout, setPantalla, mostrarBienvenida })
     const { lightData, isAvailable } = useAmbientLight();
     const [showSmartRecommendations, setShowSmartRecommendations] = useState(false);
 
-    //LÓGICA DEL TEMPORIZADOR Usandoo -> (useEffect)
+    //LÓGICA DEL TEMPORIZADOR 
     useEffect(() => {
         if (isRunning && timeLeft > 0) {
             // Iniciar el intervalo para el conteo regresivo
@@ -55,7 +55,7 @@ export default function MenuScreen({ onLogout, setPantalla, mostrarBienvenida })
     }, [isRunning, timeLeft]);
 
 
-    // FUNCIÓN PARA FORMATEAR EL TIEMPO (MM:SS)
+    // FUNCIÓN PARA FORMATEAR EL TIEMPO 
     const formatTime = (totalSeconds) => {
         const minutes = Math.floor(totalSeconds / 60);
         const seconds = totalSeconds % 60;

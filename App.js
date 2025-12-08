@@ -26,9 +26,9 @@ export default function App() {
     const [mostrarBienvenida, setMostrarBienvenida] = useState(false);
     const pantallaAnterior = useRef('home');
 
-    // Función para programar la notificación recurrente (cada 60 segundos)
+    // Función para programar la notificación recurrente
     async function programarRecordatorioRespira() {
-        // Cancelamos cualquier notificación anterior para evitar duplicados
+
         await Notifications.cancelScheduledNotificationAsync(NOTIFICATION_ID_RESPIRA);
 
         await Notifications.scheduleNotificationAsync({
