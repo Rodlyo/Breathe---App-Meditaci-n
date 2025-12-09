@@ -15,7 +15,7 @@ export default function LoginScreen({ onLoginSuccess, onGoRegister, onForgotPass
         const valido = await validarUsuario(u, p);
 
         if (valido) {
-            onLoginSuccess();
+            onLoginSuccess(u);
         } else {
             Alert.alert('Error', 'Usuario o contraseña incorrectos');
         }

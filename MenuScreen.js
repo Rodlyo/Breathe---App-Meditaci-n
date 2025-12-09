@@ -1,124 +1,26 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, TouchableOpacity, ImageBackground, StyleSheet, Image, Alert, Platform, ScrollView } from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, TouchableOpacity, StyleSheet, Image, ScrollView, Alert } from 'react-native';
 import { PALETTE } from './Styles';
 import { useAmbientLight, AmbientLightDisplay } from './AmbientLightSensor';
 import { SmartMeditationRecommendations } from './SmartRecommendations';
 
 const iconUser = require('./assets/user.png');
-const libraryImage = require('./assets/fondo.jpg');
-const customizationImage = require('./assets/fondo.jpg');
-const progressImage = require('./assets/fondo.jpg');
 
-// Constantes para el temporizador: 10 minutos * 60 segundos
-const INITIAL_TIME = 600;
-
-export default function MenuScreen({ onLogout, setPantalla, mostrarBienvenida }) {
-    //ESTADO DEL TEMPORIZADOR
-    const [timeLeft, setTimeLeft] = useState(INITIAL_TIME);
-    const [isRunning, setIsRunning] = useState(false);
-    const [selectedSound, setSelectedSound] = useState('Ninguno'); // 🎵 NUEVO: Estado para el sonido
-    const timerRef = useRef(null); // Para almacenar la referencia del setInterval
-
-    // SENSOR DE LUZ AMBIENTAL
+export default function MenuScreen({ onLogout, setPantalla, mostrarBienvenida, usuarioActual, temaOscuro }) {
     const { lightData, isAvailable } = useAmbientLight();
     const [showSmartRecommendations, setShowSmartRecommendations] = useState(false);
 
-    //LÓGICA DEL TEMPORIZADOR 
-    useEffect(() => {
-        if (isRunning && timeLeft > 0) {
-            // Iniciar el intervalo para el conteo regresivo
-            timerRef.current = setInterval(() => {
-                setTimeLeft((prevTime) => {
-                    // Detener al llegar a 0
-                    if (prevTime <= 1) {
-                        clearInterval(timerRef.current);
-                        setIsRunning(false);
-                        Alert.alert("Meditación Terminada", "¡Has completado tu sesión!");
-                        return 0;
-                    }
-                    return prevTime - 1;
-                });
-            }, 1000); // 1000ms = 1 segundo
-        } else {
-            // Limpiar el intervalo si se pausa o se detiene
-            if (timerRef.current) {
-                clearInterval(timerRef.current);
-            }
-        }
+    const backgroundColor = temaOscuro ? '#1a1a1a' : '#fff';
+    const textColor = temaOscuro ? '#fff' : '#333';
+    const cardBackground = temaOscuro ? '#2a2a2a' : '#f5f5f5';
 
-        // Función de limpieza que se ejecuta al desmontar el componente o al cambiar dependencies
-        return () => {
-            if (timerRef.current) {
-                clearInterval(timerRef.current);
-            }
-        };
-    }, [isRunning, timeLeft]);
-
-
-    // FUNCIÓN PARA FORMATEAR EL TIEMPO 
-    const formatTime = (totalSeconds) => {
-        const minutes = Math.floor(totalSeconds / 60);
-        const seconds = totalSeconds % 60;
-        return `${minutes < 10 ? '0' : ''}${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
-    };
-
-    // FUNCIÓN PARA SELECCIONAR SONIDO
-    const handleSoundSelection = () => {
-        Alert.alert(
-            "Seleccionar Sonido",
-            "Elige un sonido relajante para tu sesión de meditación:",
-            [
-                { text: "Lluvia 🌧️", onPress: () => setSelectedSound('Lluvia') },
-                { text: "Olas del Mar 🌊", onPress: () => setSelectedSound('Olas del Mar') },
-                { text: "Campanas Tibetanas 🔔", onPress: () => setSelectedSound('Campanas Tibetanas') },
-                { text: "Ninguno", onPress: () => setSelectedSound('Ninguno'), style: 'cancel' },
-            ]
-        );
-    };
-
-    // FUNCIÓN PARA INICIAR/PAUSAR/REANUDAR
-    const toggleTimer = () => {
-        const newState = !isRunning;
-        setIsRunning(newState);
-
-        // Simulamos la lógica de iniciar/pausar el sonido
-        if (newState) {
-            console.log(`[Sound] Iniciando sonido: ${selectedSound}`);
-            // Aquí iría la lógica real para reproducir el audio seleccionado
-        } else {
-            console.log(`[Sound] Pausando sonido: ${selectedSound}`);
-            // Aquí iría la lógica real para pausar el audio
-        }
-    };
-
-    // FUNCIÓN PARA REINICIAR
-    const resetTimer = () => {
-        clearInterval(timerRef.current);
-        setIsRunning(false);
-        setTimeLeft(INITIAL_TIME);
-        // Simulamos la lógica de detener el sonido
-        console.log(`[Sound] Deteniendo y Reiniciando sonido.`);
-    };
-
-    // FUNCIÓN PARA APLICAR CONFIGURACIONES INTELIGENTES BASADAS EN LUZ
     const applySmartSettings = (settings) => {
-        // Aplicar duración recomendada (convertir minutos a segundos)
-        const newTime = settings.duration * 60;
-        setTimeLeft(newTime);
-
-        // Aplicar sonido recomendado
-        setSelectedSound(settings.sound);
-
-        // Mostrar confirmación
         Alert.alert(
             "Configuración Aplicada",
             `Se ha configurado tu sesión con:\n• Duración: ${settings.duration} minutos\n• Sonido: ${settings.sound}\n• Técnica: ${settings.technique}`,
-            [{ text: "Comenzar Meditación", onPress: () => toggleTimer() }]
+            [{ text: "Ir a Biblioteca", onPress: () => setPantalla('biblioteca') }]
         );
-
-        console.log(`[SmartSettings] Aplicadas: ${settings.duration}min, ${settings.sound}, ${settings.technique}`);
     };
-
 
     const handleLogout = () => {
         Alert.alert(
@@ -131,55 +33,44 @@ export default function MenuScreen({ onLogout, setPantalla, mostrarBienvenida })
         );
     };
 
-    // Componente discreto de notificación (Toast in-app)
     const NotificationBar = () => {
         if (!mostrarBienvenida) return null;
-
         return (
             <View style={styles.notificationBar}>
-                <Text style={styles.notificationText}>¡Bienvenido de vuelta! Tu paz comienza ahora. 🧘</Text>
+                <Text style={styles.notificationText}>Bienvenido de vuelta. Tu momento de paz te espera.</Text>
             </View>
         );
     };
 
-    // Altura aproximada de la barra de notificación para empujar el contenido
     const notificationHeight = 60;
-
-    // El margen se aplica al header solo si la notificación está visible
     const headerConditionalMargin = mostrarBienvenida ? notificationHeight : 0;
 
-
     return (
-        <View style={styles.container}>
-            {/*BARRA DE NOTIFICACIÓN FLOTANTE */}
+        <View style={[styles.container, { backgroundColor }]}>
             <NotificationBar />
 
-            {/*Header (con margen condicional) */}
             <View style={[styles.header, { marginTop: headerConditionalMargin }]}>
-                <Text style={styles.userText}>Usuario</Text>
+                <Text style={[styles.userText, { color: textColor }]}>{usuarioActual || 'Usuario'}</Text>
                 <TouchableOpacity
                     style={styles.smartButton}
                     onPress={() => setShowSmartRecommendations(!showSmartRecommendations)}
                 >
-                    <Text style={styles.smartButtonText}>💡</Text>
+                    <Text style={styles.smartButtonText}>Inteligencia</Text>
                 </TouchableOpacity>
-                <TouchableOpacity onPress={handleLogout}>
+                <TouchableOpacity onPress={() => setPantalla('configuracion')}>
                     <Image source={iconUser} style={styles.userIcon} />
                 </TouchableOpacity>
             </View>
 
-            <ScrollView
-                style={styles.scrollContainer}
-                showsVerticalScrollIndicator={false}
-            >
-                {/*SENSOR DE LUZ AMBIENTAL - Siempre visible en formato compacto */}
+            <ScrollView style={styles.scrollContainer} showsVerticalScrollIndicator={false}>
+                {/* Sensor de Luz Compacto */}
                 <AmbientLightDisplay
                     lightData={lightData}
                     isAvailable={isAvailable}
                     compact={true}
                 />
 
-                {/* RECOMENDACIONES INTELIGENTES - Mostrar/Ocultar */}
+                {/* Recomendaciones Inteligentes */}
                 {showSmartRecommendations && (
                     <SmartMeditationRecommendations
                         lightLevel={lightData.level}
@@ -188,85 +79,79 @@ export default function MenuScreen({ onLogout, setPantalla, mostrarBienvenida })
                     />
                 )}
 
-                {/* Temporizador central y CONTROLES AÑADIDOS */}
-                <View style={styles.timerContainer}>
-                    <View style={styles.timerCircle}>
-                        <Text style={styles.timerText}>{formatTime(timeLeft)}</Text>
-                    </View>
-
-                    {/* 🎶 Indicador de Sonido Seleccionado */}
-                    <Text style={styles.soundSelectionText}>Sonido: {selectedSound}</Text>
-
-                    <TouchableOpacity
-                        style={[styles.timerButton, { marginBottom: 20 }]}
-                        onPress={handleSoundSelection} //  Nuevo handler de selección
-                    >
-                        <Text style={styles.timerButtonText}>Seleccionar sonido</Text>
-                    </TouchableOpacity>
-
-                    {/*  Botón INICIAR/PAUSAR/REANUDAR */}
-                    <TouchableOpacity
-                        style={[
-                            styles.controlButton,
-                            { backgroundColor: isRunning ? PALETTE.COLOR_RED || '#D9534F' : PALETTE.COLOR_GREEN }
-                        ]}
-                        onPress={toggleTimer}
-                    >
-                        <Text style={styles.controlButtonText}>
-                            {isRunning ? 'PAUSAR' : (timeLeft === INITIAL_TIME ? 'INICIAR' : 'REANUDAR')}
-                        </Text>
-                    </TouchableOpacity>
-
-                    {/* Botón de REINICIAR (solo visible cuando se ha iniciado o pausado y no está en el tiempo inicial) */}
-                    {timeLeft !== INITIAL_TIME && (
-                        <TouchableOpacity
-                            style={[styles.controlButton, styles.resetButton]}
-                            onPress={resetTimer}
-                        >
-                            <Text style={styles.controlButtonText}>REINICIAR</Text>
-                        </TouchableOpacity>
-                    )}
+                {/* Sección de Introducción */}
+                <View style={styles.introSection}>
+                    <Text style={[styles.introTitle, { color: textColor }]}>Bienvenido a Breathe</Text>
+                    <Text style={styles.introSubtitle}>Tu compañero de meditación y bienestar</Text>
+                    <Text style={[styles.introDescription, { color: textColor }]}>
+                        Explora nuestras meditaciones, usa nuestro sensor de luz para recomendaciones personalizadas y sigue tu progreso.
+                    </Text>
                 </View>
 
-                {/* Botones tipo tarjeta */}
-                <View style={styles.cardsContainer}>
+                {/* Sección de Acciones Principales */}
+                <View style={styles.mainActionsSection}>
+                    <Text style={[styles.sectionTitle, { color: textColor }]}>Explorar</Text>
+
                     <TouchableOpacity
-                        style={styles.card}
+                        style={[styles.mainCard, { backgroundColor: cardBackground }]}
                         onPress={() => setPantalla('biblioteca')}
                     >
-                        <ImageBackground source={libraryImage} style={styles.cardBackground} imageStyle={{ borderRadius: 15 }}>
-                            <Text style={styles.cardText}>BIBLIOTECA</Text>
-                        </ImageBackground>
+                        <View style={styles.mainCardIcon}>
+                            <Text style={styles.cardIconText}>📚</Text>
+                        </View>
+                        <View style={styles.mainCardContent}>
+                            <Text style={[styles.mainCardTitle, { color: textColor }]}>Biblioteca de Meditaciones</Text>
+                            <Text style={[styles.mainCardDescription, { color: textColor }]}>Accede a 9+ meditaciones guiadas</Text>
+                        </View>
                     </TouchableOpacity>
-
 
                     <TouchableOpacity
-                        style={styles.card}
+                        style={[styles.mainCard, { backgroundColor: cardBackground }]}
                         onPress={() => setPantalla('ambient-light-demo')}
                     >
-                        <ImageBackground source={customizationImage} style={styles.cardBackground} imageStyle={{ borderRadius: 15 }}>
-                            <Text style={styles.cardText}>💡 SENSOR LUZ</Text>
-                        </ImageBackground>
-                    </TouchableOpacity>
-
-                    <TouchableOpacity style={styles.card}>
-                        <ImageBackground source={progressImage} style={styles.cardBackground} imageStyle={{ borderRadius: 15 }}>
-                            <Text style={styles.cardText}>PROGRESO</Text>
-                        </ImageBackground>
+                        <View style={styles.mainCardIcon}>
+                            <Text style={styles.cardIconText}>💡</Text>
+                        </View>
+                        <View style={styles.mainCardContent}>
+                            <Text style={[styles.mainCardTitle, { color: textColor }]}>Sensor de Luz Ambiental</Text>
+                            <Text style={[styles.mainCardDescription, { color: textColor }]}>Meditaciones adaptadas a tu entorno</Text>
+                        </View>
                     </TouchableOpacity>
                 </View>
+
+                {/* Sección de Información */}
+                <View style={styles.infoSection}>
+                    <Text style={[styles.sectionTitle, { color: textColor }]}>Más Opciones</Text>
+
+                    <TouchableOpacity style={[styles.infoCard, { backgroundColor: cardBackground }]}>
+                        <Text style={[styles.infoCardTitle, { color: textColor }]}>Configuración</Text>
+                        <Text style={[styles.infoCardSubtitle, { color: textColor }]}>Personaliza tu experiencia</Text>
+                    </TouchableOpacity>
+
+                    <TouchableOpacity style={[styles.infoCard, { backgroundColor: cardBackground }]}>
+                        <Text style={[styles.infoCardTitle, { color: textColor }]}>Mi Progreso</Text>
+                        <Text style={[styles.infoCardSubtitle, { color: textColor }]}>Ve tus estadísticas de meditación</Text>
+                    </TouchableOpacity>
+
+                    <TouchableOpacity style={[styles.infoCard, { backgroundColor: cardBackground }]}>
+                        <Text style={[styles.infoCardTitle, { color: textColor }]}>Recordatorios</Text>
+                        <Text style={[styles.infoCardSubtitle, { color: textColor }]}>Notificaciones personalizadas</Text>
+                    </TouchableOpacity>
+                </View>
+
+                <View style={{ height: 40 }} />
             </ScrollView>
 
             {/* Barra inferior */}
-            <View style={styles.bottomBar}>
+            <View style={[styles.bottomBar, { backgroundColor: cardBackground, borderTopColor: temaOscuro ? '#444' : '#e0e0e0' }]}>
                 <TouchableOpacity style={styles.bottomButton}>
-                    <Text style={styles.bottomText}>⚙️ Configuración</Text>
+                    <Text style={styles.bottomText}>Configuración</Text>
                 </TouchableOpacity>
                 <TouchableOpacity style={styles.bottomButton}>
-                    <Text style={styles.bottomText}>🏠 Inicio</Text>
+                    <Text style={styles.bottomText}>Inicio</Text>
                 </TouchableOpacity>
                 <TouchableOpacity style={styles.bottomButton}>
-                    <Text style={styles.bottomText}>⏰ Recordatorio</Text>
+                    <Text style={styles.bottomText}>Recordatorio</Text>
                 </TouchableOpacity>
             </View>
         </View>
@@ -277,27 +162,26 @@ export default function MenuScreen({ onLogout, setPantalla, mostrarBienvenida })
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#f0f3e8',
-        paddingTop: 50
+        backgroundColor: PALETTE.BACKGROUND_MAIN,
+        paddingTop: 50,
     },
 
-    // ESTILOS DE NOTIFICACIÓN IN-APP
     notificationBar: {
         position: 'absolute',
         top: 0,
         left: 0,
         right: 0,
-        backgroundColor: PALETTE.COLOR_GREEN, // Verde Oliva
+        backgroundColor: PALETTE.COLOR_GREEN,
         paddingBottom: 10,
         paddingTop: 30,
         zIndex: 100,
         alignItems: 'center',
-        justifyContent: 'center',
     },
+
     notificationText: {
-        color: 'white',
+        color: '#fff',
         fontWeight: '500',
-        fontSize: 15,
+        fontSize: 14,
     },
 
     header: {
@@ -305,105 +189,154 @@ const styles = StyleSheet.create({
         justifyContent: 'space-between',
         paddingHorizontal: 20,
         alignItems: 'center',
-        marginBottom: 30,
+        marginBottom: 25,
     },
-    userText: { fontSize: 20, fontWeight: 'bold' },
-    userIcon: { width: 40, height: 40, borderRadius: 20 },
 
-    timerContainer: { alignItems: 'center', marginBottom: 30 },
-    timerCircle: {
-        width: 120,
-        height: 120,
-        borderRadius: 60,
-        borderWidth: 2,
-        borderColor: PALETTE.COLOR_GREEN,
-        justifyContent: 'center',
-        alignItems: 'center',
-        marginBottom: 15,
-    },
-    timerText: { fontSize: 24, fontWeight: 'bold', color: PALETTE.TEXT_DARK },
-
-    // 🎶 NUEVO ESTILO: Para mostrar el sonido seleccionado
-    soundSelectionText: {
-        fontSize: 16,
+    userText: {
+        fontSize: 22,
+        fontWeight: 'bold',
         color: PALETTE.TEXT_DARK,
-        marginBottom: 10,
-        fontWeight: '500',
     },
 
-    // Se modificó el margen inferior para dar espacio a los nuevos botones
-    timerButton: {
-        backgroundColor: PALETTE.BUTTON_PRIMARY,
-        paddingHorizontal: 20,
-        paddingVertical: 12,
-        borderRadius: 25,
-        elevation: 3,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.15,
-        shadowRadius: 2,
-    },
-    timerButtonText: { color: '#fff', fontWeight: '600', fontSize: 13 },
-
-    // ESTILOS PARA LOS BOTONES DE CONTROL (INICIAR/PAUSAR/REINICIAR)
-    controlButton: {
-        width: 150,
-        height: 50,
-        justifyContent: 'center',
-        alignItems: 'center',
-        borderRadius: 25,
-        marginBottom: 10,
-        backgroundColor: PALETTE.BUTTON_PRIMARY,
-        elevation: 3,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.15,
-        shadowRadius: 2,
-    },
-    controlButtonText: {
-        color: '#fff',
-        fontSize: 13,
-        fontWeight: '600',
-    },
-    resetButton: {
+    smartButton: {
+        paddingVertical: 10,
+        paddingHorizontal: 15,
+        borderRadius: 20,
         backgroundColor: PALETTE.BUTTON_SECONDARY,
-        marginTop: 10,
+        elevation: 2,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 1 },
+        shadowOpacity: 0.1,
+        shadowRadius: 2,
     },
 
-    // 💡 NUEVOS ESTILOS PARA SENSOR DE LUZ
+    smartButtonText: {
+        color: '#fff',
+        fontWeight: '600',
+        fontSize: 12,
+    },
+
+    userIcon: {
+        width: 40,
+        height: 40,
+        borderRadius: 20,
+    },
+
     scrollContainer: {
         flex: 1,
         paddingHorizontal: 20,
     },
-    smartButton: {
-        width: 50,
-        height: 50,
-        borderRadius: 25,
-        backgroundColor: PALETTE.BUTTON_SECONDARY,
-        justifyContent: 'center',
-        alignItems: 'center',
-        marginRight: 10,
-        elevation: 3,
+
+    // ---- Sección Introducción ----
+    introSection: {
+        marginBottom: 30,
+        paddingVertical: 20,
+    },
+
+    introTitle: {
+        fontSize: 26,
+        fontWeight: '700',
+        color: PALETTE.COLOR_BLUE,
+        marginBottom: 5,
+    },
+
+    introSubtitle: {
+        fontSize: 14,
+        fontWeight: '600',
+        color: PALETTE.COLOR_GREEN,
+        marginBottom: 10,
+    },
+
+    introDescription: {
+        fontSize: 14,
+        color: '#666',
+        lineHeight: 20,
+    },
+
+    // ---- Sección Acciones Principales ----
+    mainActionsSection: {
+        marginBottom: 30,
+    },
+
+    sectionTitle: {
+        fontSize: 16,
+        fontWeight: '700',
+        color: PALETTE.TEXT_DARK,
+        marginBottom: 15,
+    },
+
+    mainCard: {
+        flexDirection: 'row',
+        backgroundColor: '#fff',
+        borderRadius: 15,
+        padding: 15,
+        marginBottom: 12,
+        elevation: 2,
         shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.15,
+        shadowOffset: { width: 0, height: 1 },
+        shadowOpacity: 0.1,
         shadowRadius: 2,
-    },
-    smartButtonText: {
-        fontSize: 24,
-        color: '#fff',
-    },
-
-    cardsContainer: { paddingHorizontal: 20 },
-    card: { marginBottom: 20 },
-    cardBackground: {
-        width: '100%',
-        height: 80,
-        justifyContent: 'center',
         alignItems: 'center',
     },
-    cardText: { color: 'white', fontSize: 20, fontWeight: 'bold' },
 
+    mainCardIcon: {
+        width: 60,
+        height: 60,
+        borderRadius: 15,
+        backgroundColor: PALETTE.COLOR_ROSE,
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginRight: 15,
+    },
+
+    cardIconText: {
+        fontSize: 32,
+    },
+
+    mainCardContent: {
+        flex: 1,
+    },
+
+    mainCardTitle: {
+        fontSize: 15,
+        fontWeight: '700',
+        color: PALETTE.TEXT_DARK,
+        marginBottom: 4,
+    },
+
+    mainCardDescription: {
+        fontSize: 12,
+        color: '#999',
+    },
+
+    // ---- Sección Información ----
+    infoSection: {
+        marginBottom: 20,
+    },
+
+    infoCard: {
+        backgroundColor: '#f8f8f8',
+        borderRadius: 12,
+        paddingVertical: 15,
+        paddingHorizontal: 15,
+        marginBottom: 10,
+        borderLeftWidth: 4,
+        borderLeftColor: PALETTE.BUTTON_PRIMARY,
+    },
+
+    infoCardTitle: {
+        fontSize: 14,
+        fontWeight: '600',
+        color: PALETTE.TEXT_DARK,
+        marginBottom: 4,
+    },
+
+    infoCardSubtitle: {
+        fontSize: 12,
+        color: '#999',
+    },
+
+    // ---- Barra Inferior ----
     bottomBar: {
         position: 'absolute',
         bottom: 0,
@@ -415,6 +348,16 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         backgroundColor: '#e0e4d7',
     },
-    bottomButton: { alignItems: 'center' },
-    bottomText: { fontSize: 14, fontWeight: 'bold' },
+
+    bottomButton: {
+        alignItems: 'center',
+        justifyContent: 'center',
+        flex: 1,
+    },
+
+    bottomText: {
+        fontSize: 13,
+        fontWeight: '600',
+        color: PALETTE.TEXT_DARK,
+    },
 });

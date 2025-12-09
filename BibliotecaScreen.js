@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, Modal, Dimensions, Platform, KeyboardAvoidingView } from 'react-native';
 import { meditationStyles as s } from './StylesBiblioteca';
-import { styles as baseStyles } from './Styles';
+import { styles as baseStyles, PALETTE } from './Styles';
 
 const { height } = Dimensions.get('window');
 
@@ -143,11 +143,95 @@ const MEDITACIONES = [
     }
 ];
 
-export default function BibliotecaScreen({ onBack }) {
+// Guías dinámicas según tipo de meditación
+const MEDITATION_GUIDES = {
+    'Respira profundo': [
+        '🧘 Inhala lentamente por la nariz',
+        '🌬️ Mantén el aire 4 segundos',
+        '💨 Exhala lentamente por la boca',
+        '🧘 Pausa 2 segundos antes de inhalar',
+        '🫁 Siente cómo tu cuerpo se relaja'
+    ],
+    'Enfócate': [
+        '🎯 Enfoca tu atención en un punto',
+        '🧠 Deja ir los pensamientos que surjan',
+        '🌟 Regresa tu atención al presente',
+        '💡 Tu mente se vuelve clara y nítida',
+        '✨ Te sientes completamente concentrado'
+    ],
+    'Relajación rápida': [
+        '⚡ Relaja tu frente y cejas',
+        '😌 Suelta la tensión de tu cuello',
+        '💪 Deja ir la tensión de tus hombros',
+        '🫀 Tu cuerpo se llena de energía',
+        '✨ Te sientes renovado y fresco'
+    ],
+    'Visualización': [
+        '🌈 Visualiza tu objetivo con claridad',
+        '✨ Siente las emociones de lograrlo',
+        '🎯 Tu mente crea el camino al éxito',
+        '💫 Atrae la abundancia a tu vida',
+        '🌟 Ya lo has logrado, es tuyo'
+    ],
+    'Mindfulness': [
+        '🧘 Observa tus pensamientos sin juzgar',
+        '🌊 Como olas en el océano, van y vienen',
+        '💭 Regresa al presente con cada respiración',
+        '🧠 Tu mente está clara y enfocada',
+        '☮️ Paz y armonía interior'
+    ],
+    'Sueño profundo': [
+        '😴 Tu cuerpo se vuelve cada vez más pesado',
+        '🌙 Te sientes profundamente relajado',
+        '✨ Tus párpados se cierran naturalmente',
+        '💤 Entras en un sueño profundo y reparador',
+        '🌟 Descansas completamente'
+    ],
+    'Gratitud diaria': [
+        '🙏 Siente gratitud por tu vida',
+        '💖 Aprecia lo que tienes ahora',
+        '✨ Tu corazón se llena de alegría',
+        '🌟 La gratitud atrae más abundancia',
+        '💫 Eres bendecido y abundante'
+    ],
+    'Meditación guiada': [
+        '🎵 Escucha la voz guía',
+        '🌊 Flota en aguas tranquilas',
+        '✨ Tu cuerpo se relaja completamente',
+        '🧘 Paz profunda envuelve tu ser',
+        '💫 Armonía total'
+    ],
+    'Respiración consciente': [
+        '🫁 Respira profundo y lentamente',
+        '💨 Tu sistema nervioso se calma',
+        '🧘 Cada exhalación trae paz',
+        '✨ Estás completamente tranquilo',
+        '☮️ Calma absoluta'
+    ]
+};
+
+const SOUNDS = [
+    { id: 1, name: 'Ninguno', icon: '🔇' },
+    { id: 2, name: 'Campana', icon: '🔔' },
+    { id: 3, name: 'Agua', icon: '💧' },
+    { id: 4, name: 'Pájaros', icon: '🐦' },
+    { id: 5, name: 'Viento', icon: '💨' }
+];
+
+export default function BibliotecaScreen({ onBack, temaOscuro }) {
     const [selectedItem, setSelectedItem] = useState(null);
     const [showTimer, setShowTimer] = useState(false);
     const [timeLeft, setTimeLeft] = useState(0);
     const [isRunning, setIsRunning] = useState(false);
+    const [selectedSound, setSelectedSound] = useState(SOUNDS[0]);
+    const [showSoundSelector, setShowSoundSelector] = useState(false);
+    const [meditationComplete, setMeditationComplete] = useState(false);
+
+    const backgroundColor = temaOscuro ? '#1a1a1a' : '#fff';
+    const textColor = temaOscuro ? '#fff' : '#333';
+    const cardBackground = temaOscuro ? '#2a2a2a' : '#f5f5f5';
+    const borderColor = temaOscuro ? '#444' : '#e0e0e0';
+    const descriptionColor = temaOscuro ? '#bbb' : '#666';
 
     // Extraer minutos de duration (ej: "10 minutos" -> 10)
     const getDurationInMinutes = (durationStr) => {
@@ -155,11 +239,27 @@ export default function BibliotecaScreen({ onBack }) {
         return match ? parseInt(match[0]) : 10;
     };
 
+    // Obtener guía actual según progreso
+    const getCurrentGuide = () => {
+        if (!selectedItem) return '';
+        const guides = MEDITATION_GUIDES[selectedItem.title] || [];
+        const totalSeconds = getDurationInMinutes(selectedItem.duration) * 60;
+        const percentComplete = (totalSeconds - timeLeft) / totalSeconds;
+        
+        if (percentComplete >= 1) {
+            return '🎉 ¡Listo! ¡Lo hiciste!';
+        }
+        
+        const guideIndex = Math.floor(percentComplete * guides.length);
+        return guides[Math.min(guideIndex, guides.length - 1)] || '';
+    };
+
     // Iniciar temporizador cuando se abre
     useEffect(() => {
         if (selectedItem && showTimer && !isRunning && timeLeft === 0) {
             const minutes = getDurationInMinutes(selectedItem.duration);
             setTimeLeft(minutes * 60);
+            setMeditationComplete(false);
         }
     }, [selectedItem, showTimer]);
 
@@ -168,10 +268,14 @@ export default function BibliotecaScreen({ onBack }) {
         let interval;
         if (isRunning && timeLeft > 0) {
             interval = setInterval(() => {
-                setTimeLeft(prev => prev - 1);
+                setTimeLeft(prev => {
+                    if (prev <= 1) {
+                        setMeditationComplete(true);
+                        return 0;
+                    }
+                    return prev - 1;
+                });
             }, 1000);
-        } else if (timeLeft === 0 && isRunning) {
-            setIsRunning(false);
         }
         return () => clearInterval(interval);
     }, [isRunning, timeLeft]);
@@ -210,16 +314,16 @@ export default function BibliotecaScreen({ onBack }) {
     const renderCard = (item, index) => (
         <TouchableOpacity 
             key={index} 
-            style={s.card}
+            style={[s.card, { backgroundColor: cardBackground, borderColor: temaOscuro ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.08)' }]}
             onPress={() => setSelectedItem(item)}
             activeOpacity={0.85}
         >
-            <View style={s.cardImage}>
-                <Text style={s.cardIcon}>{item.icon}</Text>
+            <View style={[s.cardImage, { backgroundColor: temaOscuro ? '#5a3b3b' : PALETTE.COLOR_ROSE }]}>
+                <Text style={[s.cardIcon, { color: temaOscuro ? '#fff' : '#000' }]}>{item.icon}</Text>
             </View>
             <View style={s.cardContent}>
-                <Text style={s.cardTitle} numberOfLines={2}>{item.title}</Text>
-                <Text style={s.cardSubtitle} numberOfLines={2}>{item.subtitle}</Text>
+                <Text style={[s.cardTitle, { color: textColor }]} numberOfLines={2}>{item.title}</Text>
+                <Text style={[s.cardSubtitle, { color: descriptionColor }]} numberOfLines={2}>{item.subtitle}</Text>
             </View>
         </TouchableOpacity>
     );
@@ -229,9 +333,9 @@ export default function BibliotecaScreen({ onBack }) {
             style={{ flex: 1 }}
             behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         >
-            <View style={{ flex: 1 }}>
+            <View style={[{ flex: 1 }, { backgroundColor }]}>
                 <ScrollView
-                    style={s.container}
+                    style={[s.container, { backgroundColor }]}
                     contentContainerStyle={{ paddingBottom: 100 }}
                     scrollEnabled={!selectedItem}
                 >
@@ -240,12 +344,12 @@ export default function BibliotecaScreen({ onBack }) {
                         <Text style={s.backButtonText}>← Volver al Menú</Text>
                     </TouchableOpacity>
 
-                    <Text style={s.mainTitle}>BIBLIOTECA DE MEDITACIONES</Text>
+                    <Text style={[s.mainTitle, { color: textColor }]}>BIBLIOTECA DE MEDITACIONES</Text>
 
                     {/* Renderizar todas las categorías */}
                     {categorias.map((categoria, catIndex) => (
                         <View key={catIndex}>
-                            <Text style={s.sectionTitle}>{categoria.title}</Text>
+                            <Text style={[s.sectionTitle, { color: textColor }]}>{categoria.title}</Text>
                             <ScrollView horizontal showsHorizontalScrollIndicator={false} scrollEnabled={!selectedItem}>
                                 <View style={s.horizontalScroll}>
                                     {categoria.items.map(renderCard)}
@@ -262,9 +366,9 @@ export default function BibliotecaScreen({ onBack }) {
                     visible={!!selectedItem && !showTimer}
                     onRequestClose={() => setSelectedItem(null)}
                 >
-                    <View style={s.modalContainer}>
+                    <View style={[s.modalContainer, { backgroundColor }]}>
                         <ScrollView 
-                            style={s.detailSheet}
+                            style={[s.detailSheet, { backgroundColor }]}
                             nestedScrollEnabled={true}
                             scrollEnabled={true}
                         >
@@ -277,17 +381,17 @@ export default function BibliotecaScreen({ onBack }) {
                                         </TouchableOpacity>
                                     </View>
 
-                                    <Text style={s.detailTitle}>{selectedItem.title}</Text>
-                                    <Text style={s.detailDuration}>⏱️ {selectedItem.duration}</Text>
+                                    <Text style={[s.detailTitle, { color: textColor }]}>{selectedItem.title}</Text>
+                                    <Text style={[s.detailDuration, { color: textColor }]}>⏱️ {selectedItem.duration}</Text>
 
-                                    <Text style={s.detailDescription}>
+                                    <Text style={[s.detailDescription, { color: textColor }]}>
                                         {selectedItem.description}
                                     </Text>
 
-                                    <View style={s.detailBenefits}>
-                                        <Text style={s.benefitTitle}>Beneficios:</Text>
+                                    <View style={[s.detailBenefits, { backgroundColor: temaOscuro ? '#333' : '#f8f8f8' }]}>
+                                        <Text style={[s.benefitTitle, { color: textColor, fontWeight: '700', fontSize: 15 }]}>Beneficios:</Text>
                                         {selectedItem.benefits.map((benefit, idx) => (
-                                            <Text key={idx} style={s.benefitItem}>
+                                            <Text key={idx} style={[s.benefitItem, { color: textColor, fontWeight: '500', fontSize: 13 }]}>
                                                 {benefit}
                                             </Text>
                                         ))}
@@ -304,8 +408,6 @@ export default function BibliotecaScreen({ onBack }) {
                                     >
                                         <Text style={s.playButtonText}>▶️ Comenzar Meditación</Text>
                                     </TouchableOpacity>
-
-                                    <View style={{ height: 20 }} />
                                 </>
                             )}
                         </ScrollView>
@@ -316,23 +418,55 @@ export default function BibliotecaScreen({ onBack }) {
                 <Modal
                     transparent
                     animationType="slide"
-                    visible={!!selectedItem && showTimer}
+                    visible={!!selectedItem && showTimer && !meditationComplete}
                     onRequestClose={() => {
                         setShowTimer(false);
                         setIsRunning(false);
                     }}
                 >
-                    <View style={s.timerModalContainer}>
-                        <View style={s.timerContent}>
+                    <View style={[s.timerModalContainer, { backgroundColor }]}>
+                        <View style={[s.timerContent, { backgroundColor }]}>
                             {selectedItem && (
                                 <>
                                     {/* Ícono y título */}
                                     <Text style={s.timerIcon}>{selectedItem.icon}</Text>
-                                    <Text style={s.timerTitle}>{selectedItem.title}</Text>
+                                    <Text style={[s.timerTitle, { color: textColor }]}>{selectedItem.title}</Text>
                                     
-                                    {/* Mensaje guiado */}
-                                    <Text style={s.timerGuide}>
-                                        {isRunning ? '🧘 Respira profundo y mantén la calma' : '✨ Presiona play para comenzar'}
+                                    {/* Selector de Sonido */}
+                                    <TouchableOpacity 
+                                        style={s.soundButton}
+                                        onPress={() => setShowSoundSelector(!showSoundSelector)}
+                                    >
+                                        <Text style={s.soundButtonText}>
+                                            {selectedSound.name}
+                                        </Text>
+                                    </TouchableOpacity>
+
+                                    {showSoundSelector && (
+                                        <View style={s.soundSelector}>
+                                            {SOUNDS.map((sound) => (
+                                                <TouchableOpacity
+                                                    key={sound.id}
+                                                    style={[
+                                                        s.soundOption,
+                                                        selectedSound.id === sound.id && s.soundOptionActive
+                                                    ]}
+                                                    onPress={() => {
+                                                        setSelectedSound(sound);
+                                                        setShowSoundSelector(false);
+                                                    }}
+                                                >
+                                                    <Text style={s.soundOptionText}>
+                                                        {sound.name}
+                                                    </Text>
+                                                </TouchableOpacity>
+                                            ))}
+                                        </View>
+                                    )}
+                                    
+                                    {/* Guía dinámica */}
+                                    <Text style={[s.timerGuide, { color: textColor }]}>
+                                        {getCurrentGuide()}
                                     </Text>
 
                                     {/* Cronómetro */}
@@ -387,17 +521,53 @@ export default function BibliotecaScreen({ onBack }) {
                     </View>
                 </Modal>
 
+                {/* Modal Éxito */}
+                <Modal
+                    transparent
+                    animationType="fade"
+                    visible={meditationComplete}
+                    onRequestClose={() => {
+                        setMeditationComplete(false);
+                        setShowTimer(false);
+                        setSelectedItem(null);
+                    }}
+                >
+                    <View style={[s.successModalContainer, { backgroundColor: temaOscuro ? 'rgba(0,0,0,0.8)' : 'rgba(0,0,0,0.5)' }]}>
+                        <View style={[s.successContent, { backgroundColor }]}>
+                            <Text style={s.successIcon}>🎉</Text>
+                            <Text style={[s.successTitle, { color: textColor }]}>¡Felicidades!</Text>
+                            <Text style={[s.successMessage, { color: textColor }]}>
+                                Completaste tu sesión de {selectedItem?.title}
+                            </Text>
+                            <Text style={[s.successSubtext, { color: descriptionColor }]}>
+                                {selectedItem?.duration} de meditación profunda
+                            </Text>
+
+                            <TouchableOpacity 
+                                style={s.successButton}
+                                onPress={() => {
+                                    setMeditationComplete(false);
+                                    setShowTimer(false);
+                                    setSelectedItem(null);
+                                }}
+                            >
+                                <Text style={s.successButtonText}>Volver a la Biblioteca</Text>
+                            </TouchableOpacity>
+                        </View>
+                    </View>
+                </Modal>
+
                 {/* Barra inferior */}
                 {!selectedItem && (
                     <View style={baseStyles.bottomBar}>
                         <TouchableOpacity style={baseStyles.bottomButton}>
-                            <Text style={baseStyles.bottomText}>⚙️ Configuración</Text>
+                            <Text style={baseStyles.bottomText}>Configuración</Text>
                         </TouchableOpacity>
                         <TouchableOpacity style={baseStyles.bottomButton} onPress={onBack}>
-                            <Text style={baseStyles.bottomText}>🏠 Inicio</Text>
+                            <Text style={baseStyles.bottomText}>Inicio</Text>
                         </TouchableOpacity>
                         <TouchableOpacity style={baseStyles.bottomButton}>
-                            <Text style={baseStyles.bottomText}>⏰ Recordatorio</Text>
+                            <Text style={baseStyles.bottomText}>Recordatorio</Text>
                         </TouchableOpacity>
                     </View>
                 )}

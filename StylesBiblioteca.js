@@ -360,4 +360,124 @@ export const meditationStyles = StyleSheet.create({
         backgroundColor: PALETTE.BUTTON_PRIMARY,
         borderRadius: 3,
     },
+
+    // ---- Selector de Sonido ----
+    soundButton: {
+        backgroundColor: '#f0f0f0',
+        paddingVertical: 10,
+        paddingHorizontal: 15,
+        borderRadius: 20,
+        marginBottom: 15,
+        borderWidth: 1,
+        borderColor: PALETTE.BUTTON_SECONDARY,
+    },
+
+    soundButtonText: {
+        color: PALETTE.BUTTON_SECONDARY,
+        fontWeight: '600',
+        fontSize: 14,
+        fontFamily: FONT_DEFAULT,
+        textAlign: 'center',
+    },
+
+    soundSelector: {
+        backgroundColor: '#fafafa',
+        borderRadius: 15,
+        padding: 10,
+        marginBottom: 15,
+        borderWidth: 1,
+        borderColor: '#e0e0e0',
+    },
+
+    soundOption: {
+        paddingVertical: 10,
+        paddingHorizontal: 15,
+        borderRadius: 12,
+        marginBottom: 8,
+        backgroundColor: '#fff',
+        borderWidth: 1,
+        borderColor: '#e0e0e0',
+    },
+
+    soundOptionActive: {
+        backgroundColor: PALETTE.BUTTON_PRIMARY,
+        borderColor: PALETTE.BUTTON_PRIMARY,
+    },
+
+    soundOptionText: {
+        color: '#666',
+        fontWeight: '500',
+        fontSize: 13,
+        fontFamily: FONT_DEFAULT,
+        textAlign: 'center',
+    },
+
+    // ---- Modal de Éxito ----
+    successModalContainer: {
+        flex: 1,
+        backgroundColor: 'rgba(0,0,0,0.8)',
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+
+    successContent: {
+        backgroundColor: '#fff',
+        borderRadius: 30,
+        paddingHorizontal: 30,
+        paddingVertical: 50,
+        alignItems: 'center',
+        width: '85%',
+        maxWidth: 350,
+    },
+
+    successIcon: {
+        fontSize: 100,
+        marginBottom: 20,
+    },
+
+    successTitle: {
+        fontSize: 28,
+        fontWeight: 'bold',
+        color: PALETTE.COLOR_GREEN,
+        marginBottom: 15,
+        fontFamily: FONT_HEADING,
+    },
+
+    successMessage: {
+        fontSize: 16,
+        color: PALETTE.TEXT_DARK,
+        textAlign: 'center',
+        marginBottom: 8,
+        fontFamily: FONT_DEFAULT,
+    },
+
+    successSubtext: {
+        fontSize: 13,
+        color: '#888',
+        textAlign: 'center',
+        marginBottom: 30,
+        fontStyle: 'italic',
+        fontFamily: FONT_DEFAULT,
+    },
+
+    successButton: {
+        backgroundColor: PALETTE.BUTTON_PRIMARY,
+        paddingVertical: 14,
+        paddingHorizontal: 30,
+        borderRadius: 25,
+        width: '100%',
+        alignItems: 'center',
+        elevation: 5,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 3 },
+        shadowOpacity: 0.2,
+        shadowRadius: 5,
+    },
+
+    successButtonText: {
+        color: '#fff',
+        fontWeight: '700',
+        fontSize: 15,
+        fontFamily: FONT_DEFAULT,
+    },
 });
