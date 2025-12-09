@@ -333,12 +333,17 @@ const styles = StyleSheet.create({
 
     // Se modificó el margen inferior para dar espacio a los nuevos botones
     timerButton: {
-        backgroundColor: PALETTE.BUTTON_SECONDARY,
+        backgroundColor: PALETTE.BUTTON_PRIMARY,
         paddingHorizontal: 20,
-        paddingVertical: 8,
-        borderRadius: 20,
+        paddingVertical: 12,
+        borderRadius: 25,
+        elevation: 3,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.15,
+        shadowRadius: 2,
     },
-    timerButtonText: { color: 'white', fontWeight: 'bold' },
+    timerButtonText: { color: '#fff', fontWeight: '600', fontSize: 13 },
 
     // ESTILOS PARA LOS BOTONES DE CONTROL (INICIAR/PAUSAR/REINICIAR)
     controlButton: {
@@ -348,14 +353,20 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         borderRadius: 25,
         marginBottom: 10,
+        backgroundColor: PALETTE.BUTTON_PRIMARY,
+        elevation: 3,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.15,
+        shadowRadius: 2,
     },
     controlButtonText: {
-        color: 'white',
-        fontSize: 18,
-        fontWeight: 'bold',
+        color: '#fff',
+        fontSize: 13,
+        fontWeight: '600',
     },
     resetButton: {
-        backgroundColor: PALETTE.TEXT_DARK || '#808080', // Gris oscuro para Reiniciar
+        backgroundColor: PALETTE.BUTTON_SECONDARY,
         marginTop: 10,
     },
 
@@ -365,17 +376,22 @@ const styles = StyleSheet.create({
         paddingHorizontal: 20,
     },
     smartButton: {
-        width: 40,
-        height: 40,
-        borderRadius: 20,
-        backgroundColor: PALETTE.COLOR_GREEN,
+        width: 50,
+        height: 50,
+        borderRadius: 25,
+        backgroundColor: PALETTE.BUTTON_SECONDARY,
         justifyContent: 'center',
         alignItems: 'center',
         marginRight: 10,
+        elevation: 3,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.15,
+        shadowRadius: 2,
     },
     smartButtonText: {
-        fontSize: 18,
-        color: 'white',
+        fontSize: 24,
+        color: '#fff',
     },
 
     cardsContainer: { paddingHorizontal: 20 },
