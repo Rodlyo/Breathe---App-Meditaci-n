@@ -218,7 +218,7 @@ const SOUNDS = [
     { id: 5, name: 'Viento', icon: '💨' }
 ];
 
-export default function BibliotecaScreen({ onBack, temaOscuro, defaultDuration, useDefaultDuration, preferredSound, onMeditationComplete }) {
+export default function BibliotecaScreen({ onBack, temaOscuro }) {
     const [selectedItem, setSelectedItem] = useState(null);
     const [showTimer, setShowTimer] = useState(false);
     const [timeLeft, setTimeLeft] = useState(0);
@@ -226,7 +226,6 @@ export default function BibliotecaScreen({ onBack, temaOscuro, defaultDuration, 
     const [selectedSound, setSelectedSound] = useState(SOUNDS[0]);
     const [showSoundSelector, setShowSoundSelector] = useState(false);
     const [meditationComplete, setMeditationComplete] = useState(false);
-    const lastReportedRef = React.useRef(false);
 
     const backgroundColor = temaOscuro ? '#1a1a1a' : '#fff';
     const textColor = temaOscuro ? '#fff' : '#333';
@@ -246,11 +245,11 @@ export default function BibliotecaScreen({ onBack, temaOscuro, defaultDuration, 
         const guides = MEDITATION_GUIDES[selectedItem.title] || [];
         const totalSeconds = getDurationInMinutes(selectedItem.duration) * 60;
         const percentComplete = (totalSeconds - timeLeft) / totalSeconds;
-
+        
         if (percentComplete >= 1) {
             return '🎉 ¡Listo! ¡Lo hiciste!';
         }
-
+        
         const guideIndex = Math.floor(percentComplete * guides.length);
         return guides[Math.min(guideIndex, guides.length - 1)] || '';
     };
@@ -280,18 +279,6 @@ export default function BibliotecaScreen({ onBack, temaOscuro, defaultDuration, 
         }
         return () => clearInterval(interval);
     }, [isRunning, timeLeft]);
-
-    // Reportar la meditación completada hacia App.js una vez
-    useEffect(() => {
-        if (meditationComplete && selectedItem && !lastReportedRef.current) {
-            const minutes = useDefaultDuration ? defaultDuration : getDurationInMinutes(selectedItem.duration);
-            if (onMeditationComplete) onMeditationComplete(selectedItem.id, minutes);
-            lastReportedRef.current = true;
-        }
-        if (!meditationComplete) {
-            lastReportedRef.current = false;
-        }
-    }, [meditationComplete, selectedItem, defaultDuration, useDefaultDuration, onMeditationComplete]);
 
     const handlePlayPause = () => {
         setIsRunning(!isRunning);
@@ -325,8 +312,8 @@ export default function BibliotecaScreen({ onBack, temaOscuro, defaultDuration, 
     ];
 
     const renderCard = (item, index) => (
-        <TouchableOpacity
-            key={index}
+        <TouchableOpacity 
+            key={index} 
             style={[s.card, { backgroundColor: cardBackground, borderColor: temaOscuro ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.08)' }]}
             onPress={() => setSelectedItem(item)}
             activeOpacity={0.85}
@@ -342,7 +329,7 @@ export default function BibliotecaScreen({ onBack, temaOscuro, defaultDuration, 
     );
 
     return (
-        <KeyboardAvoidingView
+        <KeyboardAvoidingView 
             style={{ flex: 1 }}
             behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         >
@@ -380,7 +367,7 @@ export default function BibliotecaScreen({ onBack, temaOscuro, defaultDuration, 
                     onRequestClose={() => setSelectedItem(null)}
                 >
                     <View style={[s.modalContainer, { backgroundColor }]}>
-                        <ScrollView
+                        <ScrollView 
                             style={[s.detailSheet, { backgroundColor }]}
                             nestedScrollEnabled={true}
                             scrollEnabled={true}
@@ -410,11 +397,11 @@ export default function BibliotecaScreen({ onBack, temaOscuro, defaultDuration, 
                                         ))}
                                     </View>
 
-                                    <TouchableOpacity
+                                    <TouchableOpacity 
                                         style={s.playButton}
                                         onPress={() => {
                                             setShowTimer(true);
-                                            const minutes = useDefaultDuration ? defaultDuration : getDurationInMinutes(selectedItem.duration);
+                                            const minutes = getDurationInMinutes(selectedItem.duration);
                                             setTimeLeft(minutes * 60);
                                             setIsRunning(false);
                                         }}
@@ -444,9 +431,9 @@ export default function BibliotecaScreen({ onBack, temaOscuro, defaultDuration, 
                                     {/* Ícono y título */}
                                     <Text style={s.timerIcon}>{selectedItem.icon}</Text>
                                     <Text style={[s.timerTitle, { color: textColor }]}>{selectedItem.title}</Text>
-
+                                    
                                     {/* Selector de Sonido */}
-                                    <TouchableOpacity
+                                    <TouchableOpacity 
                                         style={s.soundButton}
                                         onPress={() => setShowSoundSelector(!showSoundSelector)}
                                     >
@@ -476,7 +463,7 @@ export default function BibliotecaScreen({ onBack, temaOscuro, defaultDuration, 
                                             ))}
                                         </View>
                                     )}
-
+                                    
                                     {/* Guía dinámica */}
                                     <Text style={[s.timerGuide, { color: textColor }]}>
                                         {getCurrentGuide()}
@@ -489,7 +476,7 @@ export default function BibliotecaScreen({ onBack, temaOscuro, defaultDuration, 
 
                                     {/* Controles */}
                                     <View style={s.timerControls}>
-                                        <TouchableOpacity
+                                        <TouchableOpacity 
                                             style={s.timerButton}
                                             onPress={handlePlayPause}
                                         >
@@ -498,7 +485,7 @@ export default function BibliotecaScreen({ onBack, temaOscuro, defaultDuration, 
                                             </Text>
                                         </TouchableOpacity>
 
-                                        <TouchableOpacity
+                                        <TouchableOpacity 
                                             style={[s.timerButton, s.timerButtonSecondary]}
                                             onPress={handleReset}
                                         >
@@ -507,7 +494,7 @@ export default function BibliotecaScreen({ onBack, temaOscuro, defaultDuration, 
                                     </View>
 
                                     {/* Botón Salir */}
-                                    <TouchableOpacity
+                                    <TouchableOpacity 
                                         style={s.timerExitButton}
                                         onPress={() => {
                                             setShowTimer(false);
@@ -519,7 +506,7 @@ export default function BibliotecaScreen({ onBack, temaOscuro, defaultDuration, 
 
                                     {/* Progreso */}
                                     <View style={s.progressBar}>
-                                        <View
+                                        <View 
                                             style={[
                                                 s.progressFill,
                                                 {
@@ -556,7 +543,7 @@ export default function BibliotecaScreen({ onBack, temaOscuro, defaultDuration, 
                                 {selectedItem?.duration} de meditación profunda
                             </Text>
 
-                            <TouchableOpacity
+                            <TouchableOpacity 
                                 style={s.successButton}
                                 onPress={() => {
                                     setMeditationComplete(false);

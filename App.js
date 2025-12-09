@@ -8,9 +8,6 @@ import ForgotPasswordScreen from './ForgotPasswordScreen';
 import BibliotecaScreen from './BibliotecaScreen';
 import AmbientLightDemoScreen from './AmbientLightDemoScreen';
 import ConfigScreen from './ConfigScreen';
-import PersonalizationScreen from './PersonalizationScreen';
-import ProgressScreen from './ProgressScreen';
-import RemindersScreen from './RemindersScreen';
 
 export default function App() {
     const [pantalla, setPantalla] = useState('home');
@@ -19,32 +16,6 @@ export default function App() {
     const [notificacionesActivas, setNotificacionesActivas] = useState(true);
     const [sonidoActivo, setSonidoActivo] = useState(true);
     const [temaOscuro, setTemaOscuro] = useState(false);
-    const [defaultDuration, setDefaultDuration] = useState(10);
-    const [useDefaultDuration, setUseDefaultDuration] = useState(false);
-    const [preferredSound, setPreferredSound] = useState(null);
-
-    const [progress, setProgress] = useState({
-        totalMinutes: 0,
-        totalSessions: 0,
-        byMeditation: {},
-    });
-
-    const registerMeditationCompleted = (meditationId, minutes) => {
-        setProgress(prev => {
-            const byMed = { ...prev.byMeditation };
-            const key = meditationId || 'unknown';
-            const med = byMed[key] ? { ...byMed[key] } : { minutes: 0, sessions: 0, title: '' };
-            med.minutes += minutes;
-            med.sessions += 1;
-            byMed[key] = med;
-
-            return {
-                totalMinutes: prev.totalMinutes + minutes,
-                totalSessions: prev.totalSessions + 1,
-                byMeditation: byMed,
-            };
-        });
-    };
     const pantallaAnterior = useRef('home');
 
     // Lógica de navegación y bienvenida
@@ -124,38 +95,9 @@ export default function App() {
         );
     }
 
+
     if (pantalla === 'biblioteca') {
-        return (
-            <BibliotecaScreen
-                onBack={() => setPantalla('menu')}
-                temaOscuro={temaOscuro}
-                defaultDuration={defaultDuration}
-                useDefaultDuration={useDefaultDuration}
-                preferredSound={preferredSound}
-                onMeditationComplete={(id, minutes) => registerMeditationCompleted(id, minutes)}
-            />
-        );
-    }
-
-    if (pantalla === 'progreso') {
-        return (
-            <ProgressScreen
-                onBack={() => setPantalla('menu')}
-                progress={progress}
-                temaOscuro={temaOscuro}
-            />
-        );
-    }
-
-    if (pantalla === 'recordatorios') {
-        return (
-            <RemindersScreen
-                onBack={() => setPantalla('menu')}
-                notificacionesActivas={notificacionesActivas}
-                setNotificacionesActivas={setNotificacionesActivas}
-                temaOscuro={temaOscuro}
-            />
-        );
+        return <BibliotecaScreen onBack={() => setPantalla('menu')} temaOscuro={temaOscuro} />;
     }
 
     if (pantalla === 'ambient-light-demo') {
@@ -177,21 +119,6 @@ export default function App() {
                     setUsuarioActual('');
                     setPantalla('home');
                 }}
-            />
-        );
-    }
-
-    if (pantalla === 'personalizacion') {
-        return (
-            <PersonalizationScreen
-                onBack={() => setPantalla('menu')}
-                defaultDuration={defaultDuration}
-                setDefaultDuration={setDefaultDuration}
-                useDefaultDuration={useDefaultDuration}
-                setUseDefaultDuration={setUseDefaultDuration}
-                preferredSound={preferredSound}
-                setPreferredSound={setPreferredSound}
-                temaOscuro={temaOscuro}
             />
         );
     }

@@ -384,15 +384,6 @@ const styles = StyleSheet.create({
         fontSize: 15,
     },
 
-    smallButton: {
-        paddingHorizontal: 8,
-        paddingVertical: 6,
-        borderRadius: 8,
-        justifyContent: 'center',
-        alignItems: 'center',
-        marginLeft: 6,
-    },
-
     // ---- Estilos del Modal ----
     modalContainer: {
         flex: 1,

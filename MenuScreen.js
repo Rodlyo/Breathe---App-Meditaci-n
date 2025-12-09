@@ -123,17 +123,17 @@ export default function MenuScreen({ onLogout, setPantalla, mostrarBienvenida, u
                 <View style={styles.infoSection}>
                     <Text style={[styles.sectionTitle, { color: textColor }]}>Más Opciones</Text>
 
-                    <TouchableOpacity style={[styles.infoCard, { backgroundColor: cardBackground }]} onPress={() => setPantalla('configuracion')}>
+                    <TouchableOpacity style={[styles.infoCard, { backgroundColor: cardBackground }]}>
                         <Text style={[styles.infoCardTitle, { color: textColor }]}>Configuración</Text>
                         <Text style={[styles.infoCardSubtitle, { color: textColor }]}>Personaliza tu experiencia</Text>
                     </TouchableOpacity>
 
-                    <TouchableOpacity style={[styles.infoCard, { backgroundColor: cardBackground }]} onPress={() => setPantalla('progreso')}>
+                    <TouchableOpacity style={[styles.infoCard, { backgroundColor: cardBackground }]}>
                         <Text style={[styles.infoCardTitle, { color: textColor }]}>Mi Progreso</Text>
                         <Text style={[styles.infoCardSubtitle, { color: textColor }]}>Ve tus estadísticas de meditación</Text>
                     </TouchableOpacity>
 
-                    <TouchableOpacity style={[styles.infoCard, { backgroundColor: cardBackground }]} onPress={() => setPantalla('recordatorios')}>
+                    <TouchableOpacity style={[styles.infoCard, { backgroundColor: cardBackground }]}>
                         <Text style={[styles.infoCardTitle, { color: textColor }]}>Recordatorios</Text>
                         <Text style={[styles.infoCardSubtitle, { color: textColor }]}>Notificaciones personalizadas</Text>
                     </TouchableOpacity>
@@ -144,13 +144,13 @@ export default function MenuScreen({ onLogout, setPantalla, mostrarBienvenida, u
 
             {/* Barra inferior */}
             <View style={[styles.bottomBar, { backgroundColor: cardBackground, borderTopColor: temaOscuro ? '#444' : '#e0e0e0' }]}>
-                <TouchableOpacity style={styles.bottomButton} onPress={() => setPantalla('configuracion')}>
+                <TouchableOpacity style={styles.bottomButton}>
                     <Text style={styles.bottomText}>Configuración</Text>
                 </TouchableOpacity>
-                <TouchableOpacity style={styles.bottomButton} onPress={() => setPantalla('menu')}>
+                <TouchableOpacity style={styles.bottomButton}>
                     <Text style={styles.bottomText}>Inicio</Text>
                 </TouchableOpacity>
-                <TouchableOpacity style={styles.bottomButton} onPress={() => setPantalla('recordatorios')}>
+                <TouchableOpacity style={styles.bottomButton}>
                     <Text style={styles.bottomText}>Recordatorio</Text>
                 </TouchableOpacity>
             </View>
