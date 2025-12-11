@@ -13,6 +13,7 @@ const MEDITACIONES = [
         duration: '10 minutos',
         icon: '🌬️',
         category: 'Recomendadas para ti',
+        tags: ['estrés', 'ansiedad', 'calma'],
         description: 'Una técnica respiratoria simple pero poderosa que calma el sistema nervioso y reduce el estrés en minutos.',
         benefits: [
             '✓ Reduce cortisol y estrés',
@@ -28,6 +29,7 @@ const MEDITACIONES = [
         duration: '8 minutos',
         icon: '🎯',
         category: 'Recomendadas para ti',
+        tags: ['concentración', 'productividad'],
         description: 'Mejora tu concentración y enfoque mental con esta meditación diseñada para aumentar la productividad y la claridad de pensamiento.',
         benefits: [
             '✓ Aumenta concentración',
@@ -43,6 +45,7 @@ const MEDITACIONES = [
         duration: '5 minutos',
         icon: '⚡',
         category: 'Recomendadas para ti',
+        tags: ['sueño', 'relajación', 'ansiedad'],
         description: 'Recarga tu energía rápidamente con esta meditación corta y efectiva, perfecta para pausas durante el día.',
         benefits: [
             '✓ Energía renovada',
@@ -73,6 +76,7 @@ const MEDITACIONES = [
         duration: '12 minutos',
         icon: '🧘',
         category: 'Más populares',
+        tags: ['sueño', 'relajación', 'ansiedad'],
         description: 'Desarrolla atención plena y presencia en el momento actual. Una práctica fundamental para la paz interior y el bienestar.',
         benefits: [
             '✓ Presencia y consciencia',
@@ -88,6 +92,7 @@ const MEDITACIONES = [
         duration: '15 minutos',
         icon: '😴',
         category: 'Más populares',
+        tags: ['sueño', 'relajación', 'ansiedad'],
         description: 'Alcanza un sueño profundo y reparador con esta meditación diseñada para tranquilizar la mente y relajar completamente el cuerpo.',
         benefits: [
             '✓ Sueño de calidad',
@@ -103,6 +108,7 @@ const MEDITACIONES = [
         duration: '7 minutos',
         icon: '🙏',
         category: 'Nuevas meditaciones',
+        tags: ['estrés', 'ansiedad', 'calma'],
         description: 'Cultiva una actitud de gratitud que transforma tu perspectiva y atrae más abundancia a tu vida. Aumenta la felicidad real.',
         benefits: [
             '✓ Mayor positividad',
@@ -118,6 +124,7 @@ const MEDITACIONES = [
         duration: '10 minutos',
         icon: '🎵',
         category: 'Nuevas meditaciones',
+        tags: ['estrés', 'ansiedad', 'calma'],
         description: 'Una guía experta te lleva a través de una relajación profunda, liberando todas las tensiones del cuerpo y la mente.',
         benefits: [
             '✓ Relajación completa',
@@ -133,6 +140,7 @@ const MEDITACIONES = [
         duration: '5 minutos',
         icon: '💨',
         category: 'Nuevas meditaciones',
+        tags: ['estrés', 'ansiedad', 'calma'],
         description: 'Domina técnicas de respiración consciente para activar tu parasimpático y lograr calma instantánea en cualquier momento.',
         benefits: [
             '✓ Calma instantánea',
@@ -226,6 +234,7 @@ export default function BibliotecaScreen({ onBack, temaOscuro }) {
     const [selectedSound, setSelectedSound] = useState(SOUNDS[0]);
     const [showSoundSelector, setShowSoundSelector] = useState(false);
     const [meditationComplete, setMeditationComplete] = useState(false);
+    const [userPreference, setUserPreference] = useState('todos');
 
     const backgroundColor = temaOscuro ? '#1a1a1a' : '#fff';
     const textColor = temaOscuro ? '#fff' : '#333';
@@ -245,11 +254,11 @@ export default function BibliotecaScreen({ onBack, temaOscuro }) {
         const guides = MEDITATION_GUIDES[selectedItem.title] || [];
         const totalSeconds = getDurationInMinutes(selectedItem.duration) * 60;
         const percentComplete = (totalSeconds - timeLeft) / totalSeconds;
-        
+
         if (percentComplete >= 1) {
             return '🎉 ¡Listo! ¡Lo hiciste!';
         }
-        
+
         const guideIndex = Math.floor(percentComplete * guides.length);
         return guides[Math.min(guideIndex, guides.length - 1)] || '';
     };
@@ -296,24 +305,31 @@ export default function BibliotecaScreen({ onBack, temaOscuro }) {
         return `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
     };
 
+    const meditacionesFiltradas = userPreference === 'todos'
+        ? MEDITACIONES
+        : MEDITACIONES.filter(m =>
+            m.tags?.includes(userPreference)
+        );
+
+
     const categorias = [
         {
             title: 'Recomendadas para ti',
-            items: MEDITACIONES.filter(m => m.category === 'Recomendadas para ti')
+            items: meditacionesFiltradas.filter(m => m.category === 'Recomendadas para ti')
         },
         {
             title: 'Más populares',
-            items: MEDITACIONES.filter(m => m.category === 'Más populares')
+            items: meditacionesFiltradas.filter(m => m.category === 'Más populares')
         },
         {
             title: 'Nuevas meditaciones',
-            items: MEDITACIONES.filter(m => m.category === 'Nuevas meditaciones')
+            items: meditacionesFiltradas.filter(m => m.category === 'Nuevas meditaciones')
         },
     ];
 
     const renderCard = (item, index) => (
-        <TouchableOpacity 
-            key={index} 
+        <TouchableOpacity
+            key={index}
             style={[s.card, { backgroundColor: cardBackground, borderColor: temaOscuro ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.08)' }]}
             onPress={() => setSelectedItem(item)}
             activeOpacity={0.85}
@@ -329,7 +345,7 @@ export default function BibliotecaScreen({ onBack, temaOscuro }) {
     );
 
     return (
-        <KeyboardAvoidingView 
+        <KeyboardAvoidingView
             style={{ flex: 1 }}
             behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         >
@@ -345,6 +361,33 @@ export default function BibliotecaScreen({ onBack, temaOscuro }) {
                     </TouchableOpacity>
 
                     <Text style={[s.mainTitle, { color: textColor }]}>BIBLIOTECA DE MEDITACIONES</Text>
+
+                    <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginVertical: 10 }}>
+                        {['todos', 'estrés', 'sueño', 'concentración', 'energía', 'relajación'].map(pref => (
+                            <TouchableOpacity
+                                key={pref}
+                                onPress={() => setUserPreference(pref)}
+                                style={{
+                                    paddingHorizontal: 14,
+                                    paddingVertical: 8,
+                                    marginRight: 10,
+                                    borderRadius: 20,
+                                    backgroundColor:
+                                        userPreference === pref
+                                            ? PALETTE.COLOR_ROSE
+                                            : temaOscuro ? '#333' : '#eee'
+                                }}
+                            >
+                                <Text style={{
+                                    color: userPreference === pref ? '#fff' : textColor,
+                                    fontWeight: '600'
+                                }}>
+                                    {pref.toUpperCase()}
+                                </Text>
+                            </TouchableOpacity>
+                        ))}
+                    </ScrollView>
+
 
                     {/* Renderizar todas las categorías */}
                     {categorias.map((categoria, catIndex) => (
@@ -367,7 +410,7 @@ export default function BibliotecaScreen({ onBack, temaOscuro }) {
                     onRequestClose={() => setSelectedItem(null)}
                 >
                     <View style={[s.modalContainer, { backgroundColor }]}>
-                        <ScrollView 
+                        <ScrollView
                             style={[s.detailSheet, { backgroundColor }]}
                             nestedScrollEnabled={true}
                             scrollEnabled={true}
@@ -397,7 +440,7 @@ export default function BibliotecaScreen({ onBack, temaOscuro }) {
                                         ))}
                                     </View>
 
-                                    <TouchableOpacity 
+                                    <TouchableOpacity
                                         style={s.playButton}
                                         onPress={() => {
                                             setShowTimer(true);
@@ -431,9 +474,9 @@ export default function BibliotecaScreen({ onBack, temaOscuro }) {
                                     {/* Ícono y título */}
                                     <Text style={s.timerIcon}>{selectedItem.icon}</Text>
                                     <Text style={[s.timerTitle, { color: textColor }]}>{selectedItem.title}</Text>
-                                    
+
                                     {/* Selector de Sonido */}
-                                    <TouchableOpacity 
+                                    <TouchableOpacity
                                         style={s.soundButton}
                                         onPress={() => setShowSoundSelector(!showSoundSelector)}
                                     >
@@ -463,7 +506,7 @@ export default function BibliotecaScreen({ onBack, temaOscuro }) {
                                             ))}
                                         </View>
                                     )}
-                                    
+
                                     {/* Guía dinámica */}
                                     <Text style={[s.timerGuide, { color: textColor }]}>
                                         {getCurrentGuide()}
@@ -474,9 +517,10 @@ export default function BibliotecaScreen({ onBack, temaOscuro }) {
                                         <Text style={s.timerText}>{formatTime(timeLeft)}</Text>
                                     </View>
 
+
                                     {/* Controles */}
                                     <View style={s.timerControls}>
-                                        <TouchableOpacity 
+                                        <TouchableOpacity
                                             style={s.timerButton}
                                             onPress={handlePlayPause}
                                         >
@@ -485,7 +529,7 @@ export default function BibliotecaScreen({ onBack, temaOscuro }) {
                                             </Text>
                                         </TouchableOpacity>
 
-                                        <TouchableOpacity 
+                                        <TouchableOpacity
                                             style={[s.timerButton, s.timerButtonSecondary]}
                                             onPress={handleReset}
                                         >
@@ -494,7 +538,7 @@ export default function BibliotecaScreen({ onBack, temaOscuro }) {
                                     </View>
 
                                     {/* Botón Salir */}
-                                    <TouchableOpacity 
+                                    <TouchableOpacity
                                         style={s.timerExitButton}
                                         onPress={() => {
                                             setShowTimer(false);
@@ -506,7 +550,7 @@ export default function BibliotecaScreen({ onBack, temaOscuro }) {
 
                                     {/* Progreso */}
                                     <View style={s.progressBar}>
-                                        <View 
+                                        <View
                                             style={[
                                                 s.progressFill,
                                                 {
@@ -543,7 +587,7 @@ export default function BibliotecaScreen({ onBack, temaOscuro }) {
                                 {selectedItem?.duration} de meditación profunda
                             </Text>
 
-                            <TouchableOpacity 
+                            <TouchableOpacity
                                 style={s.successButton}
                                 onPress={() => {
                                     setMeditationComplete(false);

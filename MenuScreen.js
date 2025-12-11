@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Image, ScrollView, Alert } from 'react-native';
 import { PALETTE } from './Styles';
 import { useAmbientLight, AmbientLightDisplay } from './AmbientLightSensor';
@@ -9,6 +9,44 @@ const iconUser = require('./assets/user.png');
 export default function MenuScreen({ onLogout, setPantalla, mostrarBienvenida, usuarioActual, temaOscuro }) {
     const { lightData, isAvailable } = useAmbientLight();
     const [showSmartRecommendations, setShowSmartRecommendations] = useState(false);
+
+    // ---- CRONÓMETRO ----
+    const [selectedMinutes, setSelectedMinutes] = useState(5);
+    const [timeLeft, setTimeLeft] = useState(5 * 60);
+    const [running, setRunning] = useState(false);
+
+    useEffect(() => {
+        if (!running) return;
+
+        const interval = setInterval(() => {
+            setTimeLeft(t => {
+                if (t <= 1) {
+                    clearInterval(interval);
+                    Alert.alert(
+                        "Sesión completada 🧘‍♂️",
+                        "Buen trabajo, sigue respirando."
+                    );
+                    setRunning(false);
+                    return 0;
+                }
+                return t - 1;
+            });
+        }, 1000);
+
+        return () => clearInterval(interval);
+    }, [running]);
+
+    const formatTime = (seconds) => {
+        const m = String(Math.floor(seconds / 60)).padStart(2, '0');
+        const s = String(seconds % 60).padStart(2, '0');
+        return `${m}:${s}`;
+    };
+
+    const selectMinutes = (min) => {
+        setSelectedMinutes(min);
+        setTimeLeft(min * 60);
+        setRunning(false);
+    };
 
     const backgroundColor = temaOscuro ? '#1a1a1a' : '#fff';
     const textColor = temaOscuro ? '#fff' : '#333';
@@ -78,6 +116,90 @@ export default function MenuScreen({ onLogout, setPantalla, mostrarBienvenida, u
                         onApplySettings={applySmartSettings}
                     />
                 )}
+
+                {/* ---- CRONÓMETRO ---- */}
+                <View style={{ marginBottom: 30 }}>
+                    <Text style={[styles.sectionTitle, { color: textColor }]}>
+                        Temporizador de Meditación
+                    </Text>
+
+                    <View style={{
+                        width: 110,
+                        height: 110,
+                        borderRadius: 55,
+                        borderWidth: 2,
+                        borderColor: PALETTE.COLOR_GREEN,
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                        alignSelf: 'center',
+                        marginBottom: 12
+                    }}>
+                        <Text style={{
+                            fontSize: 24,
+                            fontWeight: '700',
+                            color: textColor
+                        }}>
+                            {formatTime(timeLeft)}
+                        </Text>
+                    </View>
+
+
+                    {/* Selector de minutos */}
+                    <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+                        {[1, 2, 3, 5, 10, 15].map(min => (
+                            <TouchableOpacity
+                                key={min}
+                                onPress={() => selectMinutes(min)}
+                                style={{
+                                    paddingVertical: 6,
+                                    paddingHorizontal: 14,
+                                    marginRight: 8,
+                                    borderRadius: 20,
+                                    backgroundColor: selectedMinutes === min
+                                        ? PALETTE.BUTTON_PRIMARY
+                                        : PALETTE.BUTTON_SECONDARY,
+                                }}
+                            >
+                                <Text style={{ color: '#fff', fontWeight: '600' }}>
+                                    {min} min
+                                </Text>
+                            </TouchableOpacity>
+                        ))}
+                    </ScrollView>
+
+                    {/* Controles */}
+                    <View style={{ flexDirection: 'row', justifyContent: 'center', marginTop: 15 }}>
+                        <TouchableOpacity
+                            onPress={() => setRunning(!running)}
+                            style={{
+                                backgroundColor: PALETTE.COLOR_GREEN,
+                                paddingHorizontal: 25,
+                                paddingVertical: 10,
+                                borderRadius: 25,
+                                marginRight: 10
+                            }}
+                        >
+                            <Text style={{ color: '#fff', fontWeight: '700' }}>
+                                {running ? 'Pausar' : 'Iniciar'}
+                            </Text>
+                        </TouchableOpacity>
+
+                        <TouchableOpacity
+                            onPress={() => selectMinutes(selectedMinutes)}
+                            style={{
+                                backgroundColor: '#999',
+                                paddingHorizontal: 20,
+                                paddingVertical: 10,
+                                borderRadius: 25
+                            }}
+                        >
+                            <Text style={{ color: '#fff', fontWeight: '700' }}>
+                                Reset
+                            </Text>
+                        </TouchableOpacity>
+                    </View>
+                </View>
+
 
                 {/* Sección de Introducción */}
                 <View style={styles.introSection}>
